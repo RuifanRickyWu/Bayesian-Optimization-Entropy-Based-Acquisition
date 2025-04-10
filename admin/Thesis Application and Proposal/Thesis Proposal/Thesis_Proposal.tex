@@ -1,0 +1,144 @@
+\documentclass{article}
+
+\usepackage[final]{neurips_2023}
+
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+
+
+\title{
+MIE498 -- Undergraduate Research Thesis Proposal \\
+Bayesian Optimization using Information Gain Acquisition Functions
+}
+
+\author{
+  Ruifan Wu \\
+  Department of Mechanical \& Industrial Engineering\\
+  University of Toronto\\
+  \texttt{ruifan.wu@mail.utoronto.ca} \\
+  \texttt{Student ID: 1006702926}
+}
+
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+Bayesian optimization (BO) is a sequential optimization methodology for locating the global minima of a general nonlinear function that may be corrupted by noise.
+The standard BO formulation incorporates the use of Gaussian Process (GP) models that are used to model the objective function.
+GP models offer the benefit of including error statistics which can be interpreted to represent how certain the model is about it's prediction.
+Additionally, BO incorporates the use of acquisition functions (search functions, infill criteria or policies) to determine a promising candidate point which can be used to evaluate the true objective function.
+In this thesis project, we aim to investigate the performance of information gain matrics -- such as entropy search, predictive entropy search and max value entropy search -- when used as the specified acquisition function for BO.
+
+
+\section{Objectives}
+The objectives of this thesis project are
+
+\begin{itemize}
+    \item Construct entropy-based acquisition functions (i.e., Entropy Search, Predictive Entropy Search and Max Value Entropy Search) that can be used in a Bayesian optimization setting where we use the statistics from a GP posterior distribution to compute the search policy for ES, PES and/or MES.
+    \item Compare the performance of these acquisition functions in a Bayesian Optimization setting against other common acquisition functions such as the probability of improvement, expected improvement, lower confidence bound and/or Thompson sampling.
+    \item Extend this work to the setting of optimization under uncertainty if time permits where we have Gaussian process models for robustness metrics (optional).
+\end{itemize}
+
+\section{Description of Activities}
+
+To achieve these objectives, I will be focusing on:
+
+\begin{itemize}
+    \item Complete Literature Review on
+
+    \begin{itemize}
+        \item Gaussian Process Modelling
+        \item Acquisition Functions in Bayesian Optimization Modeling
+    \end{itemize}
+
+    \item Curate multiple datasets in different dimensions in Bayesian Optimization settings
+
+    \item Developing implementations for various acquisition functions including
+    \begin{itemize}
+        \item Entropy-based acquisition functions
+        \begin{itemize}
+            \item Entropy Search
+            \item Max-value Entropy Search
+            \item Predictive Entropy Search
+        \end{itemize}
+
+        \item Common acquisition functions
+        \begin{itemize}
+            \item Probability of Improvement
+            \item Expected Improvement
+            \item Lower Confidence Bound
+            \item Thompson Sampling
+        \end{itemize}
+    \end{itemize}
+
+    \item Testing and evaluating different proposed methodologies in the curated datasets and explore ideas on improving entropy-based search’s performance and efficiency in normal and under uncertainty scenarios.
+\end{itemize}
+
+\section{Evaluation Breakdown and Percentage}
+
+\begin{itemize}
+    \item Review of the literature: 10\%
+    \item Development and description of theory: 20\%
+    \item Implementation: 20\%
+    \item Evaluation: 25\%
+    \item Summary of Finding: 25\%
+\end{itemize}
+
+\section{Work Schedule Breakdown}
+January:
+\begin{itemize}
+    \item Onboarding with GPytorch and Pytorch by finishing GPyTorch Regression Tutorial
+    \item Implement the $2D$ and $nD$ Gaussian process models in GPytorch environment.
+\end{itemize}
+
+February:
+\begin{itemize}
+    \item Implement and test information gain metrics that can be used together with GP models
+    \item Design of experiments to compute the performance of the information gain metrics
+\end{itemize}
+
+March:
+\begin{itemize}
+    \item Finish any implementation.
+    \item Carry out experiments
+\end{itemize}
+
+April:
+\begin{itemize}
+    \item Finalize thesis write-up and submit for department review.
+\end{itemize}
+
+\begin{table}[h!]
+  \caption{Work Schedule}
+  \label{work-schedule}
+  \centering
+  \begin{tabular}{ll}
+    \toprule
+
+    Deliverable/ Task & Date/ Time Needed \\
+
+    \midrule
+
+    Meeting & Weekly / 1-2 hrs \\
+    Reading related materials & Weekly / 6 hrs \\
+    Coding & Weekly / 5 hrs  \\
+    Testing and evaluations & Weekly / 2 hrs \\
+    Final Thesis Report & A week before the last day of lectures / 40 hrs \\
+
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+For the semester: around 230 hours.
+
+\end{document}
