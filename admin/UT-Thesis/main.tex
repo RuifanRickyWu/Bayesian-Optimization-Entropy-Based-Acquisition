@@ -14,7 +14,7 @@
 \maketitle
 
 \begin{abstract}
-Bayesian Optimization (BO) has emerged as a powerful framework for optimizing expensive black-box functions commonly encountered in machine learning, engineering design, and scientific experimentation. Central to BO is the use of acquisition functions that guide the selection of evaluation points by balancing exploration and exploitation. While improvement-based acquisition functions, such as Probability of Improvement (PI) and Expected Improvement (EI), have shown success in many applications, they often struggle in high-dimensional or multimodal settings.
+Bayesian Optimization (BO) has emerged as a powerful framework for optimizing expensive black-box functions commonly encountered in machine learning, engineering design, and scientific experimentation. Central to BO is the use of acquisition functions that guide the selection of candidate points by balancing exploration and exploitation. While improvement-based acquisition functions, such as Probability of Improvement (PI) and Expected Improvement (EI), have shown success in many applications, they often struggle in settings where the objective function is high-dimensional or multimodal.
 
 This thesis focuses on entropy-based acquisition functions, which adopt an information-theoretic approach by explicitly aiming to reduce uncertainty about the location or the value of the global optimum. We provide a review of entropy-driven strategies, including Entropy Search (ES), Predictive Entropy Search (PES), and Max-value Entropy Search (MES), outlining their theoretical foundations and the approximation techniques used to enable tractable computation.
 
@@ -45,7 +45,7 @@ Thanks to everyone I’ve met over the past five years—you’ve all made this 
 
 \section{Background}
 
-In many real-world optimization problems, evaluating a solution can be computationally expensive, time-consuming, or resource-intensive. This is especially true in domains such as automated machine learning, drug discovery, materials design, and robotics, where each evaluation may involve training complex models, running detailed simulations, or conducting physical experiments\cite{berkenkamp2023bayesian}\cite{zhang2020bayesian}\cite{8539993}. Traditional optimization methods, ranging from exhaustive grid searches to heuristic-driven strategies, often become impractical in these settings.
+In many real-world optimization problems, evaluating a solution can be computationally expensive, time-consuming, or resource-intensive. This is especially true in domains such as machine learning, drug discovery, materials design, and robotics, where each evaluation may involve training complex models, running detailed simulations, or conducting physical experiments\cite{berkenkamp2023bayesian}\cite{zhang2020bayesian}\cite{8539993}. Traditional optimization methods, ranging from exhaustive grid searches to heuristic-driven strategies, often become impractical in these settings.
 
 To address these challenges, there is a growing need for optimization strategies that can make the most of limited evaluations while intelligently navigating complex, uncertain landscapes. One such approach is BO, which has emerged as a powerful framework for optimizing black-box functions with high evaluation costs. Rather than relying on large volumes of random or structured sampling, BO strategically selects evaluation points based on a surrogate model that captures uncertainty and guides the search process.
 
@@ -76,7 +76,7 @@ In Chapter 4, we aim to carry out numerical studies that explain the experiment 
 
 \chapter{Literature Review}
 
-In this chapter we reviewed the BO framework, which employs a GP as a surrogate model and utilizes an acquisition function to determine the next sampling point. A detailed description of GP can be found in text by Rasmusen and Williams\cite{rasmussen2006gaussian}, while for BO the reader can refer to the text by Garnett et al.\cite{garnett2023bayesian} for a comprehensive explanation.
+In this chapter, we reviewed the BO framework, which employs a GP as a surrogate model and utilizes an acquisition function to determine the next sampling point. A detailed description of GP can be found in text by Rasmusen and Williams\cite{rasmussen2006gaussian}, while for BO the reader can refer to the text by Garnett et al.\cite{garnett2023bayesian} for a comprehensive explanation.
 
 \section{Gaussian Process Overview}
 
@@ -86,49 +86,50 @@ This section introduces the reader to several relevant aspects of GP with the Fu
 
 Formally, a GP is defined as a collection of random variables, where any finite subset follows a joint Gaussian distribution. Rather than specifying a function explicitly, a GP characterizes a distribution over functions, enabling a probabilistic approach to modeling unknown functions\cite{rasmussen2006gaussian}.
 
-The GP model is completely specified by its mean function and covariance function. We define the mean function m(x) and the covariance function $k(\mathbf{x},\mathbf{x'})$ of a real process f(x) as
+The GP model is completely specified by its mean function and covariance function. We define the mean function m(x) and the covariance function $k(\mathbf{x},\mathbf{x'})$ of a real process $f(\mathbf{x})$ as
 
 \begin{equation}
     m(\mathbf{x}) = \mathbb{E}[f(\mathbf{x})],
 \end{equation}
-
+and 
 \begin{equation}
     k(\mathbf{x}, \mathbf{x}') = \mathbb{E}[(f(\mathbf{x}) - m(\mathbf{x}))(f(\mathbf{x}') - m(\mathbf{x}'))],
 \end{equation}
+Respectively, where the target function $f : \mathbf{x} \in \mathbb{R}^d \to \mathbb{R}_\infty$
 
-We often use a compact notation of a GP with mean function m and covariance function f(x,x') 
+We often use a compact notation of a GP with mean function m and covariance function $f(\mathbf{x},\mathbf{x'})$
 
 \begin{equation}
-    f(\mathbf{x}) \sim \mathcal{GP} (m,k)
+    f\sim \mathcal{GP} (m,k)
 \end{equation}
 
-Normally, for notational simplicity, we take the mean function to be zero, and when the mean function is non-zero, the GP can be rewritten as the offset with a mean function of $\hat{f} - m$
+Normally, for notational simplicity, we take the mean function to be zero, and when the mean function is non-zero, the GP can be rewritten as the offset with a mean function of $\hat{f} - m$.
 
 \subsection{Gaussian Process Prior}
-In a GP Regression, we wish to use a GP as a surrogate and realization of the true objective function. For the default model used to approximate the hidden objective function, we typically assume a mean function of zero. The prior kernel (covariance) function captures the knowledge and assumptions we have regarding the hidden objective function. 
+In GP Regression, we wish to use a GP as a surrogate and realization of the true objective function. For the default model used to approximate the hidden objective function, we typically assume a zero mean function. The prior kernel (covariance) function captures the knowledge and assumptions we have regarding the hidden objective function. 
 
 \subsubsection{Squared Exponential (RBF) Kernel}
 
 The squared exponential (SE) kernel, also known as the Radial Basis Function (RBF) or Gaussian kernel, defines the covariance between two input points $\mathbf{x}$ and $\mathbf{x'}$  in GPs\cite{rasmussen2006gaussian}, which takes the form of
 \begin{equation}
-    k_{\text{SE}}(\mathbf{x}, \mathbf{x'}) = \sigma_f^2 \exp\left( -\frac{\|\mathbf{x} - \mathbf{x'}\|^2}{2\ell^2} \right)
+    k_{\text{SE}}(\mathbf{x}, \mathbf{x'}) = \sigma_f^2 \exp\left( -\frac{\|\mathbf{x} - \mathbf{x'}\|^2}{2\ell^2} \right).
 \end{equation}
 The \textbf{length-scale} (\(\ell\)) determines how quickly the function values change with respect to the input; a larger \(\ell\) leads to smoother, more slowly varying functions, whereas a smaller \(\ell\) allows the function to exhibit rapid, local fluctuations. On the other hand, the \textbf{signal variance} (\(\sigma_f^2\)) governs the overall magnitude of variation in the function's output, indicating how far the function values are expected to deviate from the mean. Together, these hyperparameters play a critical role in shaping the behavior of the function modeled by a GP, as shown in Figure \ref{fig:gp_samples}.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.7\textwidth]{rbf.png}
-    \caption[Samples drawn from a Gaussian Process prior using the Squared Exponential (SE) kernel 
+    \caption[Samples drawn from a Gaussian Process prior using the Squared Exponential kernel 
     with varying length-scale values \( \ell \) and fixed signal variance \( \sigma_f^2 = 1 \).]{Samples drawn from a GP prior using the Squared Exponential (SE) kernel 
     with varying length-scale values \( \ell \) and fixed signal variance \( \sigma_f^2 = 1 \). The dashed line indicates the zero prior mean.}
     \label{fig:gp_samples}
 \end{figure}
 
 \newpage
-The standard SE kernel is isotropic, meaning it treats all input dimensions equally. However, with \textbf{Automatic Relevance Determination (ARD)}, each input dimension \( d \) is assigned its own length-scale (i.e. $\ell$  = ($\ell_1$, $\ell_2$, $\ell_3$ ...., $\ell_d$)) , resulting in an anisotropic kernel
+The standard SE kernel is isotropic, meaning it treats all input dimensions equally. However, with \textbf{Automatic Relevance Determination (ARD)}, each input dimension \( d \) is assigned its own length-scale (i.e. $\ell$  = ($\ell_1$, $\ell_2$, ...., $\ell_d$)) , resulting in an anisotropic kernel
 
 \begin{equation}
-    k_{\text{SE,ARD}}(\mathbf{x}, \mathbf{x'}) = \sigma_f^2 \exp\left( -\sum_{d=1}^{D} \frac{(x_d - x'_d)^2}{2\ell_d^2} \right)
+    k_{\text{SE,ARD}}(\mathbf{x}, \mathbf{x'}) = \sigma_f^2 \exp\left( -\sum_{d=1}^{D} \frac{(x_d - x'_d)^2}{2\ell_d^2} \right).
 \end{equation}
 
 This ARD variant allows the model to infer the relevance of each input dimension, assigning longer length-scales to less relevant dimensions that result in little variation along those axes, and shorter length-scales to more relevant dimensions that allowing variation in those directions. This is shown in Figure \ref{fig:ard_kernel_bw}
@@ -138,7 +139,7 @@ The SE kernel is stationary, meaning it depends only on the Euclidean distance b
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.85\textwidth]{rbf_with_ard.png}
-    \caption[Visualization of the Squared Exponential (SE) kernel with Automatic Relevance Determination (ARD). ]
+    \caption[Visualization of the Squared Exponential kernel with Automatic Relevance Determination. ]
         {Grayscale visualization of the Squared Exponential (SE) kernel with Automatic Relevance Determination (ARD). 
         Each subplot illustrates kernel values \( k_{\text{SE,ARD}}(\mathbf{x}, \mathbf{x'}) \) for $\mathbf{x'} = (0, 0)$ under different dimension-specific length-scales. Shorter \( \ell_d \) indicates higher sensitivity along that input dimension.
     }
@@ -167,7 +168,7 @@ Common choices are half-integer values of $\nu$, for which the kernel has closed
     \item $\nu = \frac{1}{2}$: The Ornstein–Uhlenbeck (OU) covariance
     
     \begin{equation}
-    k(r) = \sigma_f^2 \exp( -\frac{r}{\ell})
+    k(r) = \sigma_f^2 \exp\left( -\frac{r}{\ell}\right)
     \end{equation}
 
     Known as the exponential kernel. It produces very rough, non-differentiable sample paths that is continuous but not smooth. The OU kernel encodes an assumption that the function is unsmooth. The observations only inform a small neighborhood – points must be close to be strongly correlated
@@ -179,7 +180,7 @@ Common choices are half-integer values of $\nu$, for which the kernel has closed
         \left(1 + \sqrt{3}\,\frac{r}{\ell}\right)\exp\!\left(-\,\sqrt{3}\,\frac{r}{\ell}\right)
     \end{equation}
 
-    which yields sample paths that are once differentiable. This kernel is less smooth than RBF but smoother than OU, assuming moderate continuity in the function.
+    which yields sample paths that are once differentiable. This kernel is smoother than OU, assuming moderate continuity in the function.
 
     \item $\nu = \frac{5}{2}$: Matérn-$5/2$ kernel
 
@@ -237,8 +238,7 @@ A fundamental aspect of GPs is their inherent connection to Bayesian inference�
 
 \subsubsection{Posterior Distribution Derivation}
 
-In GP regression, we consider a noise-free training dataset
-$ D = {(\mathbf{x}^{(i)}, f^{(i)})}{i=1}^{n} $ and test points $ \mathbf{X_*}$, where the goal is to predict the function values $ f_* $ at $ \mathbf{X_*} $. Under a zero-mean GP prior, the joint prior distribution of training and test outputs follows:
+In GP regression, we consider a noise-free training dataset $D = \left( \mathbf{X}, \mathbf{Y} \right) = \left\{ \left( \mathbf{x}^{(i)}, f^{(i)} \right) \right\}_{i=1}^n $ and test points $ \mathbf{X_*}$, where the goal is to predict the function values $ f_* $ at $ \mathbf{X_*} $. Under a zero-mean GP prior, the joint prior distribution of training and test outputs follows
 
 \begin{equation}
     \begin{bmatrix}
@@ -256,19 +256,19 @@ k(\mathbf{X_*}, \mathbf{X}) & k(\mathbf{X_*}, \mathbf{X_*})
 \end{equation}
 
 
-Here, $ k(\mathbf{X},\mathbf{X}) $ represents the covariance matrix for training inputs, $ k(\mathbf{X_*},\mathbf{X_*} ) $ for test inputs, and $ K(\mathbf{X},\mathbf{X_*}) $ the cross-covariance between them. The kernel function $ k $ defines prior assumptions on smoothness and continuity.
+Here, $ k(\mathbf{X},\mathbf{X}) $ represents the covariance matrix for training inputs, $ k(\mathbf{X_*},\mathbf{X_*} ) $ for test inputs, and $ k(\mathbf{X},\mathbf{X_*}) $ the cross-covariance between them. The kernel function $ k $ defines prior assumptions on smoothness and continuity.
 
-Applying Gaussian conditioning, the posterior mean and covariance functions become:
+Applying Gaussian conditioning, the posterior mean and covariance functions become
 
 \begin{equation}
-    \mu_D(X_*) = k(\mathbf{X_*}, \mathbf{X}) k(\mathbf{X}, \mathbf{X})^{-1} f
+    \mu_D(\mathbf{X_*}) = k(\mathbf{X_*}, \mathbf{X}) k(\mathbf{X}, \mathbf{X})^{-1} f
 \end{equation}
 
 \begin{equation}
     k_D(\mathbf{X_*}, \mathbf{X_*}) = k(\mathbf{X_*}, \mathbf{X_*}) - k(\mathbf{X_*}, \mathbf{X}) k(\mathbf{X}, \mathbf{X})^{-1} k(\mathbf{X}, \mathbf{X_*})
 \end{equation}
 
-The \textbf{posterior mean} \( \mu_D(X_*) \) represents our best estimate of the function's value at \( X_* \) given the observed data. It is a weighted linear combination of the training observations \( f \), where the weights are determined by the covariance between \( X_* \) and the training inputs. This means the model uses nearby known data points to make predictions, assigning higher importance to observations that are more strongly correlated with \( X_* \).
+The \textbf{posterior mean} \( \mu_D(\mathbf{X_*}) \) represents our best estimate of the function's value at \( \mathbf{X_*} \) given the observed data. It is a weighted linear combination of the training observations \( f \), where the weights are determined by the covariance between \( \mathbf{X_*} \) and the training inputs. This means the model uses nearby known data points to make predictions, assigning higher importance to observations that are more strongly correlated with \( \mathbf{X_*} \).
 
 The \textbf{posterior covariance} \( k_D(\mathbf{X_*}, \mathbf{X_*}) \) describes the uncertainty in the predictions. 
 
@@ -287,25 +287,25 @@ This means that the model uncertainty is significantly reduced near observed dat
 \end{figure}
 
 \newpage
-In practical scenarios, observations are often contaminated with noise. This is modeled as:
+In practice, observations are often contaminated with noise. This is modeled as
 
 \begin{equation}
     y = f(\mathbf{x}) + \varepsilon, \quad \varepsilon \sim \mathcal{N}(0, \nu^2),
 \end{equation}
 
-where \( \varepsilon \) represents Gaussian noise with variance \( \nu^2 \). As a result, the covariance of the observed outputs becomes:
+where \( \varepsilon \) represents Gaussian noise with variance \( \nu^2 \). As a result, the covariance of the observed outputs becomes
 
 \begin{equation}
     \operatorname{cov}(y \mid \mathbf{X}) = k(\mathbf{X}, \mathbf{X}) + \nu^2 I,
 \end{equation}
 
-where the term \( \nu^2 I \) accounts for independent, identically distributed noise in each observation. Using this updated covariance structure, the posterior predictive distribution is also modified. The posterior mean function is given by:
+where the term \( \nu^2 I \) accounts for independent, identically distributed noise in each observation. Using this updated covariance structure, the posterior predictive distribution is also modified. The posterior mean function is given by
 
 \begin{equation}
     \mu_D(\mathbf{X_*}) = k(\mathbf{X_*}, \mathbf{X}) \left[k(\mathbf{X}, \mathbf{X}) + \nu^2 I\right]^{-1} y,
 \end{equation}
 
-and the posterior covariance function becomes:
+and the posterior covariance function becomes
 
 \begin{equation}
     k_D(\mathbf{X_*}, \mathbf{X_*}) = k(\mathbf{X_*}, \mathbf{X_*}) - k(\mathbf{X_*}, \mathbf{X}) \left[k(\mathbf{X}, \mathbf{X}) + \nu^2 I\right]^{-1} k(\mathbf{X}, \mathbf{X_*}).
@@ -313,7 +313,7 @@ and the posterior covariance function becomes:
 
 In the presence of noise, the model no longer strictly interpolates the training data. Instead, it produces smoother predictions that account for the uncertainty introduced by the noise.
 
-To determine suitable hyperparameters—such as the kernel's lengthscale and variance—it is common to maximize the log-marginal likelihood of the observed data:
+To determine suitable hyperparameters—such as the kernel's lengthscale and variance—it is common to maximize the log-marginal likelihood of the observed data
 
 \begin{equation}
     \log p(y \mid \mathbf{X}) = -\frac{1}{2} y^{\top} (K + \sigma_n^2 I)^{-1} y - \frac{1}{2} \log \left|K + \sigma_n^2 I\right| - \frac{n}{2} \log 2\pi.
@@ -357,7 +357,7 @@ Various acquisition functions have been proposed, each with different theoretica
 
 The Probability of Improvement (PI) is one of the earliest BO acquisition functions\cite{kushner1964new}. PI chooses the next evaluation point by maximizing the probability that a new sample will outperform the current best observed value.
 
-Let $f_n^* = \max \{ y_1, \dots, y_n \}$ be the best (maximum) outcome observed so far. The PI acquisition function is defined as:
+Let $f_n^* = \max \{ y_1, y_2, \dots, y_n \}$ be the best (maximum) outcome observed so far. The PI acquisition function is defined as:
 
 \begin{equation}
     a_{\text{PI}}(\mathbf{x}) = \Pr\left( f(\mathbf{x}) > f_n^* + \xi \mid \mathcal{D}_n \right)
@@ -365,7 +365,7 @@ Let $f_n^* = \max \{ y_1, \dots, y_n \}$ be the best (maximum) outcome observed 
 
 where $\xi \geq 0$ is a slack (or exploration) parameter that can encourage exploration.
 
-Assuming a GP posterior, $f(\mathbf{x}) \sim \mathcal{N}(\mu_n(x), \sigma_n^2(x))$, the probability can be evaluated in closed form as a Gaussian tail probability:
+Assuming a GP posterior, $f(\mathbf{x}) \sim \mathcal{N}(\mu_n(\mathbf{x}), \sigma_n^2(\mathbf{x}))$, the probability can be evaluated in closed form as a Gaussian tail probability:
 
 \begin{equation}
     a_{\text{PI}}(\mathbf{x}) = \Phi\left( \frac{\mu_n(\mathbf{x}) - (f_n^* + \xi)}{\sigma_n(\mathbf{x})} \right)
@@ -373,21 +373,21 @@ Assuming a GP posterior, $f(\mathbf{x}) \sim \mathcal{N}(\mu_n(x), \sigma_n^2(x)
 
 where $\Phi(\cdot)$ denotes the standard normal cumulative distribution function.
 
-The acquisition function $a_{\text{PI}}(x)$ tends to be high at points where the predicted mean significantly exceeds the current best value $f_n^*$, indicating a high likelihood of improvement. It can also be high in regions with large predictive uncertainty, which increases the chance of surpassing $f_n^*$.
+The acquisition function $a_{\text{PI}}(\mathbf{x})$ tends to be high at points where the predicted mean significantly exceeds the current best value $f_n^*$, indicating a high likelihood of improvement. It can also be high in regions with large predictive uncertainty, which increases the chance of surpassing $f_n^*$.
 
 PI only considers the probability of achieving any improvement, without accounting for the magnitude of the improvement. In other words, all improvements are treated equally, regardless of how substantial they are. PI may overly concentrate on regions that have a relatively high chance of minor improvement while ignoring areas with the potential for large improvements but lower probability. Consequently, PI often exhibits overly exploitative behavior, which may lead it to become stuck in local optima and fail to explore the search space adequately.
 
 The exploration parameter $\xi$ (sometimes referred to as ``kappa'' in the literature) can partially address this issue. Increasing $\xi$ raises the threshold for improvement, thereby encouraging exploration. When $\xi = 0$, PI reduces to maximizing the probability $\Pr(f(\mathbf{x}) > f_n^*)$.
 
 \subsubsection{Expected Improvement (EI)}
-Expected Improvement is a refined acquisition function that overcomes the main limitation of PI by accounting for the magnitude of improvement. EI is defined as the expected gain in the objective value if sampling at $x$, relative to the current best $f^*_n$\cite{mockus1975bayesian}\cite{mockus1989bayesian}. 
+Expected Improvement is a refined acquisition function that overcomes the main limitation of PI by accounting for the magnitude of improvement. EI is defined as the expected gain in the objective value if sampling at $\mathbf{x}$, relative to the current best $f^*_n$\cite{mockus1975bayesian}\cite{mockus1989bayesian}. 
 
-Formally, using the same $f^*_n = \max\{y_i \mid i \le n\}$ for a maximization problem, the improvement if we sample at $x$ is 
+Formally, using the same $f^*_n = \max\{y_i \mid i \le n\}$ for a maximization problem, the improvement if we sample at $\mathbf{x}$ is 
 \begin{equation}
     (f(\mathbf{x}) - f^*_n)_+ = \max\{0, f(\mathbf{x}) - f^*_n\}
 \end{equation}
 
-i.e., the amount by which $f(x)$ exceeds the incumbent best (or 0 if it does not). The expected improvement is then the posterior expectation of this quantity:
+i.e., the amount by which $f(\mathbf{x})$ exceeds the incumbent best (or 0 if it does not). The expected improvement is then the posterior expectation of this quantity:
 \begin{equation}
     a_{\mathrm{EI}}(\mathbf{x}) = \mathbb{E}_n\left[(f(\mathbf{x}) - f^*_n)_+\right]
 \end{equation}
@@ -431,7 +431,7 @@ It is worth mentioning that UCB is typically described in terms of maximizing $f
 
 \section{Introduction}
 
-Information-theoretic acquisition functions take a different approach: rather than directly optimizing an expected objective improvement or an upper bound, they aim to reduce uncertainty about the location of the global optimum. Entropy Search (ES) and Predictive Entropy Search (PES), Max Entropy Search(MES) are three such methods. They choose the next sample to maximally gain information about the argmax of $f(\mathbf{x})$, as quantified by entropy. These methods are more complex and computationally intense, but conceptually powerful.
+Information-theoretic acquisition functions take a different approach: rather than directly optimizing an expected objective improvement or an upper bound, they aim to reduce uncertainty about the location of the global optimum. ES, PES, and MES are three such methods. They choose the next sample to maximally gain information about the argmax of $f(\mathbf{x})$, as quantified by entropy. These methods are more complex and computationally intense, but conceptually powerful.
 
 This chapter intends to investigate the performance of the entropy-based acquisition functions compared to improvement based methods.
 
@@ -443,9 +443,9 @@ is defined as the negative expected log-probability of outcomes\cite{6773024}:
 \begin{equation}
     H[p] = -\sum_i p_i \log p_i
 \end{equation}
-Intuitively, entropy measures the “spread” or unpredictability of a distribution—a high entropy value indicates great uncertainty. For continuous distributions, a well-defined analog is the relative entropy or \emph{Kullback-Leibler (KL) divergence} with respect to a reference measure\cite{kullback1968information}
+Intuitively, entropy measures the “spread” or unpredictability of a distribution, where a high entropy value indicates great uncertainty. For continuous distributions, a well-defined analog is the relative entropy or Kullback-Leibler (KL) divergence with respect to a reference measure\cite{kullback1968information}
 \begin{equation}
-    D_{\mathrm{KL}}(P \| Q) = \int_{-\infty}^{\infty} p(x) \log \left( \frac{p(\mathbf{x})}{q(\mathbf{x})} \right) \, dx
+    D_{\mathrm{KL}}(P \| Q) = \int_{-\infty}^{\infty} p(\mathbf{x}) \log \left( \frac{p(\mathbf{x})}{q(\mathbf{x})} \right) \, d\mathbf{x}
 \end{equation}
 
 Entropy’s interpretation as a measure of information content makes it a natural choice for guiding learning algorithms: reductions in entropy correspond to gains in information. In Bayesian terms, the expected information gain from an experiment can be quantified by the drop in entropy of the posterior distribution relative to the prior.
@@ -466,11 +466,11 @@ Typically a few thousand function samples may be needed for stable estimates in 
 
 \subsubsection{Expectation Propagation}
 
-Expectation Propagation (EP) is a deterministic approximation algorithm designed to estimate posterior distributions in probabilistic models where exact inference is computationally intractable\cite{minka2001expectation}. Unlike sampling-based methods such as Markov Chain Monte Carlo (MCMC), EP iteratively constructs a tractable approximation to the true posterior by minimizing the Kullback–Leibler (KL) divergence in a local and moment-matching manner. 
+Expectation Propagation (EP) is a deterministic approximation algorithm designed to estimate posterior distributions in probabilistic models where exact inference is computationally intractable\cite{minka2001expectation}. Unlike sampling-based methods such as Markov Chain Monte Carlo (MCMC), EP iteratively constructs a tractable approximation to the true posterior by minimizing the KL divergence in a local and moment-matching manner. 
 
 The central idea behind EP is to approximate each non-conjugate factor in the posterior with a simpler, tractable distribution, usually chosen from the exponential family such as Gaussians. The result is an efficient inference scheme that maintains computational tractability while offering accurate approximations to posterior moments, particularly in models like GPs where analytic treatment of the prior is feasible but likelihoods may be non-Gaussian.
 
-Given a probabilistic model with latent variables $\mathbf{z}$ and a set of observations $\mathcal{D} = \{x_i, y_i\}_{i=1}^N$, the true posterior is expressed as
+Given a probabilistic model with latent variables $\mathbf{z}$ and a set of observations $\mathcal{D} = \{x_i, y_i\}_{i=1}^n$, the true posterior is expressed as
 \begin{equation}
     p(\mathbf{z} \mid \mathcal{D}) = \frac{1}{Z} p(\mathbf{z}) \prod_{i=1}^N p(y_i \mid z_i)
 \end{equation}
@@ -497,19 +497,19 @@ EP is well-suited for models like Gaussian Process classification, where the pri
 
 Gumbel-based sampling which provides a tractable approximation for distribution of global maximum under certain assumptions\cite{wang2017max}. 
 
-Specifically, when considering a finite set of input locations \( \{\mathbf{x_1}, \mathbf{x_2}, \mathbf{x_3}, \dots, \mathbf{x_n}\} \subset \mathcal{X} \), and assuming the posterior predictive distribution of the GP at these locations yields independent function values \( f(\mathbf{x_i}) \sim \mathcal{N}(\mu_i, \sigma_i^2) \), the distribution of the maximum \( y^* \) over this set can be approximated using extreme value theory.
+Specifically, when considering a finite set of input locations \( \{\mathbf{x_1}, \mathbf{x_2}, \dots, \mathbf{x_n}\} \subset \mathcal{X} \), and assuming the posterior predictive distribution of the GP at these locations yields independent function values \( f(\mathbf{x}_i) \sim \mathcal{N}(\mu_i, \sigma_i^2) \), the distribution of the maximum \( y^* \) over this set can be approximated using extreme value theory.
 
 The key idea is that the maximum of a finite set of i.i.d. or weakly dependent Gaussian variables converges to a \textit{Gumbel distribution} in the limit. For finite \( n \), one can approximate the distribution of \( y^* \) as:
 \begin{equation}
     p(y^*) \approx \text{Gumbel}(\mu, \beta)
 \end{equation}
-where the location and scale parameters \( \mu \) and \( \beta \) can be estimated empirically from samples of \( \max_i f(x_i) \), or via analytical approximations when available. Given this approximation, one can efficiently generate samples \( \{ y_j^* \}_{j=1}^M \sim p(y^*) \) without drawing full posterior function realizations.
+where the location and scale parameters \( \mu \) and \( \beta \) can be estimated empirically from samples of \( \max_i f(\textbf{x}_i) \), or via analytical approximations when available. Given this approximation, one can efficiently generate samples \( \{ y_j^* \}_{j=1}^M \sim p(y^*) \) without drawing full posterior function realizations.
 
 These samples can then be used to compute mutual information terms of the form:
 \begin{equation}
-I(f(x); y^*) = H(f(x)) - \mathbb{E}_{y^*}[H(f(x) \mid y^*)]    
+I(f(\mathbf{x}); y^*) = H(f(\mathbf{x})) - \mathbb{E}_{y^*}[H(f(\mathbf{x}) \mid y^*)]    
 \end{equation}
-where \( H(f(x)) \) is the entropy of the GP marginal at \( x \), and the conditional entropy \( H(f(x) \mid y^*) \) is given by the entropy of a Gaussian truncated above \( y^* \):
+where \( H(f(\mathbf{x})) \) is the entropy of the GP marginal at \( x \), and the conditional entropy \( H(f(\mathbf{x}) \mid y^*) \) is given by the entropy of a Gaussian truncated above \( y^* \):
 \begin{equation}
     H(f(\mathbf{x}) \mid y^*) = \frac{1}{2} \log(2\pi e \sigma^2(\mathbf{x})) - \frac{\phi(z)}{2\Phi(z)} \cdot z
 \end{equation}
@@ -522,22 +522,22 @@ Compared to standard Monte Carlo integration over function samples, this method 
 
 \subsection{Entropy Search (ES)}
 
-Entropy Search (ES) is a landmark algorithm that embodies an information-theoretic approach to BO\cite{hennig2012entropy}.  ES begins by defining a probability distribution \( p(\mathbf{x}^* \mid D_n) \) over the location of the global optimum \( x^* \) (typically the minimizer or maximizer of an unknown function), given the current data \( D_n \). This distribution captures the algorithm’s uncertainty about the location of the true optimum.
+ES is a landmark algorithm that embodies an information-theoretic approach to BO\cite{hennig2012entropy}.  ES begins by defining a probability distribution \( p(\mathbf{x}^* \mid D_n) \) over the location of the global optimum \( x^* \) (typically the minimizer or maximizer of an unknown function), given the current data \( D_n \). This distribution captures the algorithm’s uncertainty about the location of the true optimum.
 
 The acquisition function in ES is defined as the expected reduction in the entropy of this distribution after a hypothetical evaluation at a candidate point \( \mathbf{x} \). Formally, it is expressed as:
 \begin{equation}
     \alpha_{\text{ES}}(\mathbf{x}) = H[p(\mathbf{x}^* \mid D_n)] - \mathbb{E}_{y \sim p(y \mid D_n, x)} \left[ H[p(\mathbf{x}^* \mid D_n \cup \{(\mathbf{x}, y)\})] \right]
 \end{equation}
 
-where \( H[\cdot] \) denotes the entropy. The first term \( H[p(\mathbf{x}^* \mid D_n)] \) represents the current uncertainty about the optimizer and is constant with respect to \( \mathbf{x} \). The second term is the expected residual uncertainty after observing a new function value \( y = f(\mathbf{x}) \), averaged over the predictive distribution of \( y \) at \( \mathbf{x} \). By maximizing \( \alpha_{\text{ES}}(x) \), the algorithm selects the evaluation point expected to yield the greatest information gain about the location of the global optimum.
+where \( H[\cdot] \) denotes the entropy. The first term \( H[p(\mathbf{x}^* \mid D_n)] \) represents the current uncertainty about the optimizer and is constant with respect to \( \mathbf{x} \). The second term is the expected residual uncertainty after observing a new function value \( y = f(\mathbf{x}) \), averaged over the predictive distribution of \( y \) at \( \mathbf{x} \). By maximizing \( \alpha_{\text{ES}}(\textbf{x}) \), the algorithm selects the evaluation point expected to yield the greatest information gain about the location of the global optimum.
 
-Equivalently, ES seeks to maximize the \emph{mutual information} between the new observation and the unknown optimum location \( \mathbf{x}^* \), a perspective that was emphasized in subsequent work.
+Equivalently, ES seeks to maximize the mutual information between the new observation and the unknown optimum location \( \mathbf{x}^* \), a perspective that was emphasized in subsequent work.
 
-In practice, computing \( p(\mathbf{x}^* \mid D_n) \) exactly is intractable because it involves reasoning about the argmax of a random function. ES addresses this by modeling the unknown function with a GP surrogate and approximating the optimizer distribution using methods such as Monte Carlo simulation or Expectation Propagation (EP).
+In practice, computing \( p(\mathbf{x}^* \mid D_n) \) exactly is intractable because it involves reasoning about the argmax of a random function. ES addresses this by modeling the unknown function with a GP surrogate and approximating the optimizer distribution using methods such as Monte Carlo simulation or Expectation Propagation.
 
-To make the optimization computationally feasible, ES often incorporates a pre-filtering step using simpler acquisition functions like \emph{Probability of Improvement (PI)} to narrow down the candidate set before applying the full ES acquisition calculation. This helps manage computational cost, especially in high-dimensional or expensive-to-evaluate problems.
+To make the optimization computationally feasible, ES often incorporates a pre-filtering step using simpler acquisition functions like PI to narrow down the candidate set before applying the full ES acquisition calculation. This helps manage computational cost, especially in high-dimensional or expensive-to-evaluate problems.
 
-Entropy is measured in a \emph{relative} sense using the negative Kullback-Leibler (KL) divergence from a uniform reference distribution over the domain. This means that a uniform belief (i.e., complete uncertainty) incurs the highest loss, and as the optimizer distribution becomes more concentrated (i.e., entropy decreases), the loss diminishes. ES thus selects query points expected to maximally reduce this loss, or equivalently, to maximally increase information about \( x^* \).
+Entropy is measured in a relative sense using the negative KL divergence from a uniform reference distribution over the domain. This means that a uniform belief (i.e., complete uncertainty) incurs the highest loss, and as the optimizer distribution becomes more concentrated (i.e., entropy decreases), the loss diminishes. ES thus selects query points expected to maximally reduce this loss, or equivalently, to maximally increase information about \( x^* \).
 
 \subsection{Predictive Entropy Search (PES)}
 
@@ -553,9 +553,9 @@ The ES acquisition function \( \alpha_{\text{ES}}(\mathbf{x}) \) can be rewritte
 
 where \( H[\cdot] \) denotes entropy, and the expectation is now taken over samples of \( \mathbf{x}^* \) from the current belief. This formulation swaps the integration order compared to ES, avoiding the need to recompute the posterior over \( \mathbf{x}^* \) for every possible observation \( y \). Instead, PES samples plausible optima \( \mathbf{x}^* \sim p(\mathbf{x}^* \mid D_n) \) and computes the information gain that a query at \( \mathbf{x} \) would provide under each hypothesized true optimum.
 
-This reframing makes PES much more computationally efficient. In practice, PES approximates \( p(\mathbf{x}^* \mid D_n) \) by drawing samples from the posterior GP, often via Monte Carlo simulation (e.g., drawing GP function realizations and computing their argmax). To maintain tractability, PES also supports other approximation methods such as Expectation Propagation (EP) for certain conditional entropy computations.
+This reframing makes PES much more computationally efficient. In practice, PES approximates \( p(\mathbf{x}^* \mid D_n) \) by drawing samples from the posterior GP, often via Monte Carlo simulation (e.g., drawing GP function realizations and computing their argmax). To maintain tractability, PES also supports other approximation methods such as Expectation Propagation for certain conditional entropy computations.
 
-As with ES, computing the PES acquisition function can be expensive in high-dimensional or large-data settings. To mitigate this, PES implementations often include a \textbf{pre-filtering step} using simpler utility functions like \emph{Expected Improvement (EI)} or \emph{Probability of Improvement (PI)} to select a small set of promising candidate points for full evaluation under the PES criterion.
+As with ES, computing the PES acquisition function can be expensive in high-dimensional or large-data settings. To mitigate this, PES implementations often include a pre-filtering step using simpler utility functions like EI or PI to select a small set of promising candidate points for full evaluation under the PES criterion.
 
 PES retains the key advantage of ES, explicitly maximizing the mutual information between the next query and the global optimum, but it does so in a more computationally efficient manner by focusing on the entropy of the predictive observation space rather than the belief over the optimizer.
 
@@ -651,9 +651,9 @@ The improved performance of PES and MES stems from their ability to explicitly m
 These results confirm that entropy-based acquisition functions are highly effective for high-dimensional BO, offering both scalability and robustness in navigating complex landscapes.
 
 \section{Future Work}
-An important direction for future work is the integration of hyperparameter optimization into the BO framework. While this study used fixed GP hyperparameters, optimizing them, either via marginal likelihood with advanced priors or fully Bayesian approaches (e.g., MCMC, EP), can improve surrogate accuracy and acquisition effectiveness, especially in noisy or high-dimensional regimes.
+An important direction for future work is the integration of hyperparameter optimization into the BO framework. While this study used fixed GP hyperparameters, optimizing them, either via marginal likelihood with advanced priors or fully Bayesian approaches, can improve surrogate accuracy and acquisition effectiveness, especially in noisy or high-dimensional regimes.
 
-Moreover, if time permits, we aim to extend this work to the setting of optimization under uncertainty, where GP models may be employed to represent robustness metrics. In such contexts, entropy-based acquisition functions like PES and MES remain promising, as they inherently account for epistemic uncertainty by quantifying information gain about the global optimum. 
+Moreover, if time permits, we aim to extend this work to the setting of optimization under uncertainty, where GP models may be employed to represent robustness metrics. 
 
 Future work may explore the use of these acquisition strategies to guide optimization in the presence of uncertain or robustness-sensitive objectives, potentially improving the reliability and generalizability of BO in practical, high-stakes scenarios.
 
